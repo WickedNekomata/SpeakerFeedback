@@ -77,13 +77,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("bbbb","error",e);
                 return;
             }
-            num_users_view.setText(String.format("Numusers: %d", documentSnapshots.size()));
+            num_users_view.setText(String.format("Num users: %d", documentSnapshots.size()));
 
             String nomUsuaris = "";
             for (DocumentSnapshot doc : documentSnapshots) {
                 nomUsuaris += doc.getString("name") + "\n";
             }
-            num_users_view.setText(nomUsuaris);
+            //num_users_view.setText(nomUsuaris);
         }
     };
 
@@ -112,6 +112,14 @@ public class MainActivity extends AppCompatActivity {
                     registerUser(name);
                 } else {
                     Toast.makeText(this, "Has de registrar un nom", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
+            case SHOW_USERS:
+                if (resultCode == RESULT_OK) {
+
+                } else {
+
                     finish();
                 }
                 break;
@@ -148,6 +156,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void ShowUsers(View view) {
         Intent intent = new Intent(this, ShowUsersActivity.class);
-        startActivityForResult(intent, REGISTER_USER);
+        startActivityForResult(intent, SHOW_USERS);
     }
 }
