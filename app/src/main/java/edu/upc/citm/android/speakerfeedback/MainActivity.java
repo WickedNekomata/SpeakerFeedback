@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,8 +21,9 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REGISTER_USER = 0;
+    private static final int SHOW_USERS = 1;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private TextView textview;
+    private TextView num_users_view;
     private String userId;
 
     @Override
@@ -29,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textview = findViewById(R.id.textview);
+        num_users_view = findViewById(R.id.num_users_view);
 
         // Busquem a les preferències de l'app l'ID de l'usuari per saber si ja s'havia registrat
         SharedPreferences prefs = getSharedPreferences("config", MODE_PRIVATE);
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
             // Ja està registrat, mostrem el id al Log
             Log.i("SpeakerFeedback", "userId = " + userId);
         }
+
+        db.collection("rooms").document("testroom").
     }
 
     @Override
@@ -54,6 +58,14 @@ public class MainActivity extends AppCompatActivity {
                     registerUser(name);
                 } else {
                     Toast.makeText(this, "Has de registrar un nom", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
+            case SHOW_USERS:
+                if (resultCode == RESULT_OK) {
+
+                } else {
+
                     finish();
                 }
                 break;
@@ -86,5 +98,10 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    public void ShowUsers(View view) {
+        Intent intent = new Intent(this, ShowUsersActivity.class);
+        startActivityForResult(intent, SHOW_USERS);
     }
 }
