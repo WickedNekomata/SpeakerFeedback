@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,8 +28,9 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REGISTER_USER = 0;
+    private static final int SHOW_USERS = 1;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private TextView textview;
+    private TextView num_users_view;
     private String userId;
 
     ListenerRegistration roomRegistration;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textview = findViewById(R.id.textview);
+        num_users_view = findViewById(R.id.num_users_view);
         getOrRegistrerUser();
     }
 
@@ -78,13 +80,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("bbbb","error",e);
                 return;
             }
-            textview.setText(String.format("Numusers: %d", documentSnapshots.size()));
+            num_users_view.setText(String.format("Num users: %d", documentSnapshots.size()));
 
             String nomUsuaris = "";
             for (DocumentSnapshot doc : documentSnapshots) {
                 nomUsuaris += doc.getString("name") + "\n";
             }
-            textview.setText(nomUsuaris);
+            //num_users_view.setText(nomUsuaris);
         }
     };
 
@@ -125,6 +127,14 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                 }
                 break;
+            case SHOW_USERS:
+                if (resultCode == RESULT_OK) {
+
+                } else {
+
+                    finish();
+                }
+                break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
@@ -155,5 +165,10 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    public void ShowUsers(View view) {
+        Intent intent = new Intent(this, ShowUsersActivity.class);
+        startActivityForResult(intent, SHOW_USERS);
     }
 }
