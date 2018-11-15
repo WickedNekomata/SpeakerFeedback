@@ -26,7 +26,6 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REGISTER_USER = 0;
-    private static final int SHOW_USERS = 1;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private TextView num_users_view;
     private String userId;
@@ -90,9 +89,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
         roomRegistration = db.collection("rooms").document("testroom").addSnapshotListener(roomListener);
-
         usersRegistration = db.collection("users").whereEqualTo("room", "testroom").addSnapshotListener(usersListener);
     }
 
@@ -112,14 +109,6 @@ public class MainActivity extends AppCompatActivity {
                     registerUser(name);
                 } else {
                     Toast.makeText(this, "Has de registrar un nom", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-                break;
-            case SHOW_USERS:
-                if (resultCode == RESULT_OK) {
-
-                } else {
-
                     finish();
                 }
                 break;
@@ -156,6 +145,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void ShowUsers(View view) {
         Intent intent = new Intent(this, ShowUsersActivity.class);
-        startActivityForResult(intent, SHOW_USERS);
+        startActivity(intent);
     }
 }
