@@ -32,9 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView num_users_view;
     private String userId;
 
-    ListenerRegistration roomRegistration;
-    ListenerRegistration usersRegistration;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,18 +86,22 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    @Override
-    protected void onStart() {
-        roomRegistration = db.collection("rooms").document("testroom").addSnapshotListener(roomListener);
-        usersRegistration = db.collection("users").whereEqualTo("room", "testroom").addSnapshotListener(usersListener);
-        super.onStart();
-    }
+    private EventListener<QuerySnapshot> pollsListener = new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+            
+        }
+    };
 
     @Override
-    protected void onStop() {
-        roomRegistration.remove();
-        usersRegistration.remove();
-        super.onStop();
+    protected void onStart() {
+        db.collection("rooms").document("testroom")
+                .addSnapshotListener(this, roomListener);
+        db.collection("users").whereEqualTo("room", "testroom")
+                .addSnapshotListener(this, usersListener);
+        db.collection("rooms").document("testroom").collection("polls")
+                .addSnapshotListener(this, pollsListener);
+        super.onStart();
     }
 
     protected void onDestroy() {
