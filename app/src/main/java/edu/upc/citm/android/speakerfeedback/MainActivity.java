@@ -22,15 +22,21 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.w3c.dom.Document;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REGISTER_USER = 0;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
+
     private TextView num_users_view;
     private String userId;
+    private List<Poll> polls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
                 if (e != null) {
-                    Log.e("aaa","error",e);
+                    Log.e("SpeakerFeedback","Error al rebre els 'rooms'",e);
                     return;
                 }
                 String name = documentSnapshot.getString("name");
@@ -73,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
             if (e != null) {
-                Log.e("bbbb","error",e);
+                Log.e("SpeakerFeedback","Error al rebre els 'users'",e);
                 return;
             }
             num_users_view.setText(String.format("Num users: %d", documentSnapshots.size()));
@@ -89,7 +95,17 @@ public class MainActivity extends AppCompatActivity {
     private EventListener<QuerySnapshot> pollsListener = new EventListener<QuerySnapshot>() {
         @Override
         public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
-            
+            if (e != null) {
+                Log.e("SpeakerFeedback", "Error al rebre els 'polls'", e);
+                return;
+            }
+            polls = new ArrayList<>();
+            for (DocumentSnapshot doc : documentSnapshots) {
+                Poll poll = doc.toObject(Poll.class);
+                polls.add(poll);
+            }
+            Log.i("SpeakerFeedback", String.format("He carregat %d polls", polls.size()));
+            // TODO: Avisar l'adaptador per refrescar la llista de polls i que es vegi a la pantalla
         }
     };
 
