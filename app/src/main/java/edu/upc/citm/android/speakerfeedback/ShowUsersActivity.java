@@ -28,7 +28,6 @@ public class ShowUsersActivity extends AppCompatActivity {
     private RecyclerView users_list_view;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    ListenerRegistration usersRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +45,7 @@ public class ShowUsersActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        usersRegistration = db.collection("users").whereEqualTo("room", "testroom").addSnapshotListener(usersListener);
+        db.collection("users").whereEqualTo("room", "testroom").addSnapshotListener(this, usersListener);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -56,12 +55,6 @@ public class ShowUsersActivity extends AppCompatActivity {
             super(itemView);
             this.user_view = itemView.findViewById(R.id.user_view);
         }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        usersRegistration.remove();
     }
 
     class Adapter extends RecyclerView.Adapter<ViewHolder> {
@@ -87,7 +80,7 @@ public class ShowUsersActivity extends AppCompatActivity {
         @Override
         public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
             if (e != null) {
-                Log.e("bbbb","error",e);
+                Log.e("SpeakerFeedback","Error al rebre els 'users'", e);
                 return;
             }
 

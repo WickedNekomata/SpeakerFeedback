@@ -6,8 +6,12 @@ import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,9 +24,11 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +42,10 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView num_users_view;
     private String userId;
-    private List<Poll> polls;
+    private List<Poll> polls = new ArrayList<>();
+
+    private RecyclerView polls_view;
+    private Adapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
 
         num_users_view = findViewById(R.id.num_users_view);
         getOrRegistrerUser();
+
+        polls_view = findViewById(R.id.polls_view);
+        adapter = new Adapter();
+
+        polls_view.setLayoutManager(new LinearLayoutManager(this));
+        polls_view.setAdapter(adapter);
     }
 
     private void getOrRegistrerUser() {
@@ -99,13 +114,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("SpeakerFeedback", "Error al rebre els 'polls'", e);
                 return;
             }
-            polls = new ArrayList<>();
+            polls.clear();
             for (DocumentSnapshot doc : documentSnapshots) {
                 Poll poll = doc.toObject(Poll.class);
                 polls.add(poll);
             }
             Log.i("SpeakerFeedback", String.format("He carregat %d polls", polls.size()));
-            // TODO: Avisar l'adaptador per refrescar la llista de polls i que es vegi a la pantalla
+            adapter.notifyDataSetChanged();
         }
     };
 
@@ -115,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                 .addSnapshotListener(this, roomListener);
         db.collection("users").whereEqualTo("room", "testroom")
                 .addSnapshotListener(this, usersListener);
-        db.collection("rooms").document("testroom").collection("polls")
+        db.collection("rooms").document("testroom").collection("polls").orderBy("start", Query.Direction.DESCENDING)
                 .addSnapshotListener(this, pollsListener);
         super.onStart();
     }
@@ -177,5 +192,72 @@ public class MainActivity extends AppCompatActivity {
     public void ShowUsers(View view) {
         Intent intent = new Intent(this, ShowUsersActivity.class);
         startActivity(intent);
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder {
+
+        // Pas 1. Definim les views del ViewHolder
+        private TextView question_view;
+        private TextView options_view;
+        private TextView label_view;
+        private CardView card_view;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            question_view = itemView.findViewById(R.id.question_view);
+            options_view = itemView.findViewById(R.id.options_view);
+            label_view = itemView.findViewById(R.id.label_view);
+            card_view = itemView.findViewById(R.id.card_view);
+        }
+    }
+
+    class Adapter extends RecyclerView.Adapter<ViewHolder> {
+
+        // Pas 2. Creem el ViewHolder
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View itemView = getLayoutInflater().inflate(R.layout.poll_view, parent, false);
+            return new ViewHolder(itemView);
+        }
+
+        // Pas 3. Omplim el ViewHolder creat amb les dades corresponents
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Poll poll = polls.get(position);
+            if (position == 0) {
+                holder.label_view.setVisibility(View.VISIBLE);
+                if (poll.isOpen()) {
+                    holder.label_view.setText("Active");
+                } else {
+                    holder.label_view.setText("Previous");
+                }
+            } else {
+                if (!poll.isOpen() && polls.get(position - 1).isOpen()) {
+                    holder.label_view.setVisibility(View.VISIBLE);
+                    holder.label_view.setText("Previous");
+                }
+                else {
+                    holder.label_view.setVisibility(View.GONE);
+                }
+            }
+
+            holder.card_view.setCardElevation(poll.isOpen() ? 5.0f : 0.0f);
+
+            if (!poll.isOpen()) {
+                holder.card_view.setCardBackgroundColor(0XFFE0E0E0);
+            }
+
+            // Omplim la pregunta
+            holder.question_view.setText(poll.getQuestion());
+
+            // Omplim les opcions
+            holder.options_view.setText(poll.getOptionsAsString());
+        }
+
+        @Override
+        public int getItemCount() {
+            return polls.size();
+        }
     }
 }
