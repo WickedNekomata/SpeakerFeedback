@@ -5,13 +5,23 @@ import java.util.List;
 
 public class Poll {
 
+    private String id;
     private String question;
     private List<String> options;
+    private int optionClicked = -1;
     private boolean open;
     private Date start, end;
     private List<Integer> results;
 
     Poll() {}
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getQuestion() {
         return question;
@@ -39,6 +49,14 @@ public class Poll {
 
     public void setOptions(List<String> options) {
         this.options = options;
+    }
+
+    public int getOptionClicked() {
+        return optionClicked;
+    }
+
+    public void setOptionClicked(int optionClicked) {
+        this.optionClicked = optionClicked;
     }
 
     public boolean isOpen() {

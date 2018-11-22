@@ -1,9 +1,11 @@
 package edu.upc.citm.android.speakerfeedback;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
@@ -117,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
             polls.clear();
             for (DocumentSnapshot doc : documentSnapshots) {
                 Poll poll = doc.toObject(Poll.class);
+                poll.setId(doc.getId());
                 polls.add(poll);
             }
             Log.i("SpeakerFeedback", String.format("He carregat %d polls", polls.size()));
@@ -132,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
                 .addSnapshotListener(this, usersListener);
         db.collection("rooms").document("testroom").collection("polls").orderBy("start", Query.Direction.DESCENDING)
                 .addSnapshotListener(this, pollsListener);
+
+        //db.collection("rooms").document("testroom").collection("votes").document(userId);
         super.onStart();
     }
 
@@ -194,6 +199,39 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onAnswerPoll(final Poll poll) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle(poll.getQuestion());
+        builder.setIcon(R.drawable.ic_format_list_bulleted_white_24dp);
+
+        List<String> pollOptions = poll.getOptions();
+        String[] options = new String[pollOptions.size()];
+        options = pollOptions.toArray(options);
+
+
+
+        builder.setSingleChoiceItems(options, poll.getOptionClicked(), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                poll.setOptionClicked(which);
+            }
+        });
+
+        builder.setNegativeButton(android.R.string.cancel, null);
+
+        builder.setPositiveButton("Answer", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Vote vote = new Vote(poll.getId(), poll.getOptionClicked());
+                db.collection("rooms").document("testroom").collection("votes").document(userId).set(vote);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder {
 
         // Pas 1. Definim les views del ViewHolder
@@ -204,10 +242,20 @@ public class MainActivity extends AppCompatActivity {
 
         public ViewHolder(View itemView) {
             super(itemView);
+
             question_view = itemView.findViewById(R.id.question_view);
             options_view = itemView.findViewById(R.id.options_view);
             label_view = itemView.findViewById(R.id.label_view);
             card_view = itemView.findViewById(R.id.card_view);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Poll poll = polls.get(getAdapterPosition());
+                    if (poll.isOpen())
+                        onAnswerPoll(poll);
+                }
+            });
         }
     }
 
