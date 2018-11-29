@@ -62,6 +62,19 @@ public class MainActivity extends AppCompatActivity {
 
         polls_view.setLayoutManager(new LinearLayoutManager(this));
         polls_view.setAdapter(adapter);
+
+        startFirestoreService();
+    }
+
+    private void startFirestoreService() {
+        Intent intent = new Intent(this, FirestoreListenerService.class);
+        intent.putExtra("room", "testroom");
+        startService(intent);
+    }
+
+    private void stopFirestoreService() {
+        Intent intent = new Intent(this, FirestoreListenerService.class);
+        stopService(intent);
     }
 
     private void getOrRegistrerUser() {
