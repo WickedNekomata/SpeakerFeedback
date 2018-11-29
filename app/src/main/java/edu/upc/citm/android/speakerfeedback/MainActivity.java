@@ -62,19 +62,6 @@ public class MainActivity extends AppCompatActivity {
 
         polls_view.setLayoutManager(new LinearLayoutManager(this));
         polls_view.setAdapter(adapter);
-
-        startFirestoreService();
-    }
-
-    private void startFirestoreService() {
-        Intent intent = new Intent(this, FirestoreListenerService.class);
-        intent.putExtra("room", "testroom");
-        startService(intent);
-    }
-
-    private void stopFirestoreService() {
-        Intent intent = new Intent(this, FirestoreListenerService.class);
-        stopService(intent);
     }
 
     private void getOrRegistrerUser() {
@@ -221,8 +208,6 @@ public class MainActivity extends AppCompatActivity {
         List<String> pollOptions = poll.getOptions();
         String[] options = new String[pollOptions.size()];
         options = pollOptions.toArray(options);
-
-
 
         builder.setSingleChoiceItems(options, poll.getOptionClicked(), new DialogInterface.OnClickListener() {
             @Override

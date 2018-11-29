@@ -2,20 +2,20 @@ package edu.upc.citm.android.speakerfeedback;
 
 public class Vote {
 
-    String pollId;
+    String pollid;
     int option;
 
     public Vote(String pollId, int option) {
-        this.pollId = pollId;
+        this.pollid = pollId;
         this.option = option;
     }
 
-    public String getPollId() {
-        return pollId;
+    public String getPollid() {
+        return pollid;
     }
 
-    public void setPollId(String pollId) {
-        this.pollId = pollId;
+    public void setPollid(String pollid) {
+        this.pollid = pollid;
     }
 
     public int getOption() {
