@@ -1,6 +1,7 @@
 package edu.upc.citm.android.speakerfeedback;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -9,14 +10,27 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+
 public class FirestoreListenerService extends Service {
 
-    boolean notify = false;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+    private boolean notify = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.i("SpeakerFeedback", "FirestoreListenerService.onCreate");
+
+        db.collection("rooms").document("testroom").collection("polls")
+                .whereEqualTo("open", true)
+                .addSnapshotListener(pollsListener);
     }
 
     @Override
@@ -55,4 +69,34 @@ public class FirestoreListenerService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
+
+    private EventListener<QuerySnapshot> pollsListener = new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+            if (e != null) {
+                Log.e("SpeakerFeedback", "Error al rebre els 'polls'", e);
+                return;
+            }
+
+            for (DocumentSnapshot doc : documentSnapshots) {
+                Poll poll = doc.toObject(Poll.class);
+                if (poll.isOpen()) {
+                    Log.i("SpeakerFeedback", poll.getQuestion());
+
+                    Intent intent = new Intent(FirestoreListenerService.this, MainActivity.class);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(FirestoreListenerService.this, 0, intent, 0);
+
+                    Notification notification = new NotificationCompat.Builder(FirestoreListenerService.this, App.CHANNEL_ID)
+                            .setContentTitle(String.format(poll.getQuestion()))
+                            .setSmallIcon(R.drawable.ic_message)
+                            .setContentIntent(pendingIntent)
+                            .build();
+
+                    NotificationManager notificationManager =
+                            (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+                    notificationManager.notify(2 , notification);
+                }
+            }
+        }
+    };
 }
