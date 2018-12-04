@@ -33,6 +33,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,11 +74,14 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, RegisterUserActivity.class);
             startActivityForResult(intent, REGISTER_USER);
             Toast.makeText(this, "Encara t'has de registrar", Toast.LENGTH_SHORT).show();
-        } else {
+        }
+        else {
             // Ja està registrat, mostrem el id al Log
             Log.i("SpeakerFeedback", "userId = " + userId);
             db.collection("users").document(userId).update("room", "testroom");
         }
+
+        db.collection("users").document(userId).update("last_active", new Date());
     }
 
     private EventListener<DocumentSnapshot> roomListener = new EventListener<DocumentSnapshot>() {
