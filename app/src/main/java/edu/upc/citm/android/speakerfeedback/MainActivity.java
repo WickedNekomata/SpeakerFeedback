@@ -12,6 +12,9 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -56,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         num_users_view = findViewById(R.id.num_users_view);
+
         getOrRegistrerUser();
+        startFirestoreListenerService();
 
         polls_view = findViewById(R.id.polls_view);
         adapter = new Adapter();
@@ -82,6 +87,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         db.collection("users").document(userId).update("last_active", new Date());
+    }
+
+    private void startFirestoreListenerService() {
+        Intent intent = new Intent(this, FirestoreListenerService.class);
+        intent.putExtra("room", "testroom");
+        startService(intent);
+    }
+
+    private void stopFirestoreListenerService() {
+        Intent intent = new Intent(this, FirestoreListenerService.class);
+        stopService(intent);
     }
 
     private EventListener<DocumentSnapshot> roomListener = new EventListener<DocumentSnapshot>() {
@@ -309,5 +325,23 @@ public class MainActivity extends AppCompatActivity {
         public int getItemCount() {
             return polls.size();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.logout_item:
+                stopFirestoreListenerService();
+                finish();
+                break;
+        }
+        return true;
     }
 }
