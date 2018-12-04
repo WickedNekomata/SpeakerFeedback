@@ -11,6 +11,8 @@ import android.util.Log;
 
 public class FirestoreListenerService extends Service {
 
+    boolean notify = false;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -27,7 +29,8 @@ public class FirestoreListenerService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("SpeakerFeedback", "FirestoreListenerService.onStartCommand");
 
-        createForegroundNotification();
+        if (!notify)
+            createForegroundNotification();
 
         return START_NOT_STICKY;
     }
@@ -43,6 +46,8 @@ public class FirestoreListenerService extends Service {
                 .build();
 
         startForeground(1, notification);
+
+        notify = true;
     }
 
     @Nullable
