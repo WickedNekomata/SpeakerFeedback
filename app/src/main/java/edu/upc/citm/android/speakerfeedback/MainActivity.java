@@ -110,8 +110,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("SpeakerFeedback","Error al rebre els 'rooms'",e);
                     return;
                 }
-                String name = documentSnapshot.getString("name");
-                setTitle(name);
+
+                if (documentSnapshot.getBoolean("open") == false) {
+                    stopFirestoreListenerService();
+                    finish(); // TODO: Mostrar la pantalla de selecció d'una room en comptes de tancar l'aplicació directament
+                }
+                else {
+                    String name = documentSnapshot.getString("name");
+                    setTitle(name);
+                }
             }
         };
 
