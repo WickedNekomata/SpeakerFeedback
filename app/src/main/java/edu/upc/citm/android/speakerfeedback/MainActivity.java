@@ -83,9 +83,12 @@ public class MainActivity extends AppCompatActivity {
         else {
             // Ja està registrat, mostrem el id al Log
             Log.i("SpeakerFeedback", "userId = " + userId);
-            db.collection("users").document(userId).update("room", "testroom");
+            enterRoom();
         }
+    }
 
+    private void enterRoom() {
+        db.collection("users").document(userId).update("room", "testroom");
         db.collection("users").document(userId).update("last_active", new Date());
     }
 
@@ -155,8 +158,6 @@ public class MainActivity extends AppCompatActivity {
                 .addSnapshotListener(this, usersListener);
         db.collection("rooms").document("testroom").collection("polls").orderBy("start", Query.Direction.DESCENDING)
                 .addSnapshotListener(this, pollsListener);
-
-        //db.collection("rooms").document("testroom").collection("votes").document(userId);
         super.onStart();
     }
 
@@ -193,13 +194,12 @@ public class MainActivity extends AppCompatActivity {
         db.collection("users").add(fields).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
             public void onSuccess(DocumentReference documentReference) {
-                // Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_SHORT).show();
-                // textview.setText(documentReference.getId());
                 userId = documentReference.getId();
                 SharedPreferences prefs = getSharedPreferences("config", MODE_PRIVATE);
                 prefs.edit()
                         .putString("userId", userId)
                         .commit();
+                enterRoom();
                 Log.i("SpeakerFeedback", "New user: userId = " + userId);
             }
         }).addOnFailureListener(new OnFailureListener() {
