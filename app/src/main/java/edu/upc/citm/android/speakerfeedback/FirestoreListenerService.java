@@ -4,8 +4,12 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -54,7 +58,7 @@ public class FirestoreListenerService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, App.CHANNEL_ID)
-                .setContentTitle(String.format("connectat a 'testroom'"))
+                .setContentTitle(String.format("Connectat a 'testroom'"))
                 .setSmallIcon(R.drawable.ic_message)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -87,10 +91,21 @@ public class FirestoreListenerService extends Service {
                     PendingIntent pendingIntent = PendingIntent.getActivity(FirestoreListenerService.this, 0, intent, 0);
 
                     Notification notification = new NotificationCompat.Builder(FirestoreListenerService.this, App.CHANNEL_ID)
-                            .setContentTitle(String.format(poll.getQuestion()))
+                            .setContentTitle(String.format("new Poll: %s", poll.getQuestion()))
                             .setSmallIcon(R.drawable.ic_message)
                             .setContentIntent(pendingIntent)
+                            .setPriority(Notification.PRIORITY_HIGH)
+                            .setAutoCancel(true)
                             .build();
+
+                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                    // Vibrate for 500 milliseconds
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                    } else {
+                        //deprecated in API 26
+                        v.vibrate(500);
+                    }
 
                     NotificationManager notificationManager =
                             (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
