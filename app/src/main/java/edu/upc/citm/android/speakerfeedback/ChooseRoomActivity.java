@@ -78,9 +78,9 @@ public class ChooseRoomActivity extends AppCompatActivity {
     }
 
     private void enterRoom() {
-
+        app.setRoomId("testroom");
         Intent data = new Intent();
-        //app.setRoomId();
+        startActivity(data);
         finish();
     }
 }

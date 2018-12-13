@@ -65,6 +65,15 @@ public class MainActivity extends AppCompatActivity {
 
         getOrRegistrerUser();
 
+        if (app.getRoomId() != null)
+            enterRoom();
+        else {
+            Intent intent = new Intent(this, ChooseRoomActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         startFirestoreListenerService();
 
         polls_view = findViewById(R.id.polls_view);
@@ -84,17 +93,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Encara t'has de registrar", Toast.LENGTH_SHORT).show();
         }
         else {
-            // Ja està registrat, mostrem el id al Log
             Log.i("SpeakerFeedback", "userId = " + userId);
-
-            // si la room existeix entrem a la room sino anem a la activitat d'escollir room.
-            if (app.getRoomId() != null)
-                enterRoom();
-            else {
-                Intent intent = new Intent(this, ChooseRoomActivity.class);
-                startActivity(intent);
-                finish();
-            }
         }
     }
 
