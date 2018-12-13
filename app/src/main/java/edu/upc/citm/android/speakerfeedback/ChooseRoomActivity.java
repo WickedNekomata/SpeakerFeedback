@@ -20,7 +20,7 @@ public class ChooseRoomActivity extends AppCompatActivity {
 
     public void onEnterRoom(View view) {
         String name = edit_room.getText().toString();
-        
+
         //Intent data = new Intent();
         //data.putExtra("name", name);
         //setResult(RESULT_OK, data);
