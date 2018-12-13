@@ -47,11 +47,12 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private TextView num_users_view;
-    private String userId;
     private List<Poll> polls = new ArrayList<>();
 
     private RecyclerView polls_view;
     private Adapter adapter;
+
+    private App app;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,10 @@ public class MainActivity extends AppCompatActivity {
 
         num_users_view = findViewById(R.id.num_users_view);
 
+        app = (App)getApplication();
+
         getOrRegistrerUser();
+
         startFirestoreListenerService();
 
         polls_view = findViewById(R.id.polls_view);
@@ -72,9 +76,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void getOrRegistrerUser() {
         // Busquem a les preferències de l'app l'ID de l'usuari per saber si ja s'havia registrat
-        SharedPreferences prefs = getSharedPreferences("config", MODE_PRIVATE);
-        userId = prefs.getString("userId", null);
-        if (userId == null) {
+        String userId = app.getUserId();
+        if (app.getUserId() == null) {
             // Hem de registrar l'usuari, demanem el nom
             Intent intent = new Intent(this, RegisterUserActivity.class);
             startActivityForResult(intent, REGISTER_USER);
@@ -83,18 +86,26 @@ public class MainActivity extends AppCompatActivity {
         else {
             // Ja està registrat, mostrem el id al Log
             Log.i("SpeakerFeedback", "userId = " + userId);
-            enterRoom();
+
+            // si la room existeix entrem a la room sino anem a la activitat d'escollir room.
+            if (app.getRoomId() != null)
+                enterRoom();
+            else {
+                Intent intent = new Intent(this, ChooseRoomActivity.class);
+                startActivity(intent);
+                finish();
+            }
         }
     }
 
     private void enterRoom() {
-        db.collection("users").document(userId).update("room", "testroom");
-        db.collection("users").document(userId).update("last_active", new Date());
+        db.collection("users").document(app.getUserId()).update("room", app.getRoomId());
+        db.collection("users").document(app.getUserId()).update("last_active", new Date());
     }
 
     private void startFirestoreListenerService() {
         Intent intent = new Intent(this, FirestoreListenerService.class);
-        intent.putExtra("room", "testroom");
+        intent.putExtra("room", app.getRoomId());
         startService(intent);
     }
 
@@ -169,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void onDestroy() {
-        db.collection("users").document(userId).update("room", FieldValue.delete());
+        db.collection("users").document(app.getUserId()).update("room", FieldValue.delete());
         super.onDestroy();
     }
 
@@ -201,17 +212,14 @@ public class MainActivity extends AppCompatActivity {
         db.collection("users").add(fields).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
             public void onSuccess(DocumentReference documentReference) {
-                userId = documentReference.getId();
-                SharedPreferences prefs = getSharedPreferences("config", MODE_PRIVATE);
-                prefs.edit()
-                        .putString("userId", userId)
-                        .commit();
+                app.setUserId(documentReference.getId());
                 enterRoom();
-                Log.i("SpeakerFeedback", "New user: userId = " + userId);
+                Log.i("SpeakerFeedback", "New user: userId = " + app.getUserId());
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                String userId = app.getUserId();
                 Log.e("SpeakerFeedback", "Error creant objecte", e);
                 Toast.makeText(MainActivity.this,
                         "No s'ha pogut registrar l'usuari, intenta-ho més tard", Toast.LENGTH_SHORT).show();
@@ -248,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("Answer", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                String userId = app.getUserId();
                 Vote vote = new Vote(poll.getId(), poll.getOptionClicked());
                 db.collection("rooms").document("testroom").collection("votes").document(userId).set(vote);
             }

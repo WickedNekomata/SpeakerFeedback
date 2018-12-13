@@ -15,7 +15,7 @@ public class ChooseRoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_room);
 
-        edit_room = findViewById(R.id.edit_room);
+        //edit_room = findViewById(R.id.edit_room);
     }
 
     public void onEnterRoom(View view) {
