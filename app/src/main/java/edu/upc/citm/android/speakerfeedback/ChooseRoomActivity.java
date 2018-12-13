@@ -20,12 +20,15 @@ public class ChooseRoomActivity extends AppCompatActivity {
 
     private EditText edit_room;
 
+    private App app;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_room);
 
+        app = (App)getApplication();
         //edit_room = findViewById(R.id.edit_room);
     }
 
@@ -35,11 +38,9 @@ public class ChooseRoomActivity extends AppCompatActivity {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists() && documentSnapshot.contains("password")) {
-                    String password = documentSnapshot.getString("password");
-
-                    if (!password.isEmpty())
+                    if (!documentSnapshot.getString("password").isEmpty())
                         // Introduce the password
-                        enterPassword(documentSnapshot.getString("name"), password);
+                        enterPassword(documentSnapshot);
                     else
                         // Enter the room
                         enterRoom();
@@ -49,11 +50,11 @@ public class ChooseRoomActivity extends AppCompatActivity {
     }
 
 
-    private void enterPassword(String name, final String password) {
+    private void enterPassword(final DocumentSnapshot documentSnapshot) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setTitle(String.format("Please enter the password for the room '%s':", name));
+        builder.setTitle(String.format("Please enter the password for the room '%s':", documentSnapshot.getString("name")));
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -63,7 +64,7 @@ public class ChooseRoomActivity extends AppCompatActivity {
         builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (input.getText().toString().equals(password)) {
+                if (input.getText().toString().equals(documentSnapshot.getString("password"))) {
                     // Enter the room
                     enterRoom();
                 }
@@ -79,8 +80,7 @@ public class ChooseRoomActivity extends AppCompatActivity {
     private void enterRoom() {
 
         Intent data = new Intent();
-        //data.putExtra("name", name);
-        setResult(RESULT_OK, data);
+        //app.setRoomId();
         finish();
     }
 }
