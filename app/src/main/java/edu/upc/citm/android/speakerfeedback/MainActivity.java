@@ -141,12 +141,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             num_users_view.setText(String.format("Num users: %d", documentSnapshots.size()));
-
-            String nomUsuaris = "";
-            for (DocumentSnapshot doc : documentSnapshots) {
-                nomUsuaris += doc.getString("name") + "\n";
-            }
-            //num_users_view.setText(nomUsuaris);
         }
     };
 
