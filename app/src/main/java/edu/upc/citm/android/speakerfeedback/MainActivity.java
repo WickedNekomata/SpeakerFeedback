@@ -346,6 +346,8 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.logout_item:
                 stopFirestoreListenerService();
+                Intent intent = new Intent(this, ChooseRoomActivity.class);
+                startActivity(intent);
                 finish();
                 break;
         }
