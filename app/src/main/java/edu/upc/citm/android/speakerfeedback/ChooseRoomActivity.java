@@ -29,28 +29,30 @@ public class ChooseRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_choose_room);
 
         app = (App)getApplication();
-        //edit_room = findViewById(R.id.edit_room);
+        edit_room = findViewById(R.id.edit_room);
     }
 
     public void onEnterRoom(View view) {
 
-        db.collection("rooms").document(edit_room.getText().toString()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        final String roomID = edit_room.getText().toString();
+
+        db.collection("rooms").document(roomID).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists() && documentSnapshot.contains("password")) {
                     if (!documentSnapshot.getString("password").isEmpty())
                         // Introduce the password
-                        enterPassword(documentSnapshot);
+                        enterPassword(documentSnapshot, roomID);
                     else
                         // Enter the room
-                        enterRoom();
+                        enterRoom(roomID);
                 }
             }
         });
     }
 
 
-    private void enterPassword(final DocumentSnapshot documentSnapshot) {
+    private void enterPassword(final DocumentSnapshot documentSnapshot, final String roomID) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -64,10 +66,9 @@ public class ChooseRoomActivity extends AppCompatActivity {
         builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (input.getText().toString().equals(documentSnapshot.getString("password"))) {
+                if (input.getText().toString().equals(documentSnapshot.getString("password")))
                     // Enter the room
-                    enterRoom();
-                }
+                    enterRoom(roomID);
                 else
                     Toast.makeText(ChooseRoomActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
             }
@@ -77,9 +78,9 @@ public class ChooseRoomActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void enterRoom() {
-        app.setRoomId("testroom");
-        Intent data = new Intent();
+    private void enterRoom(String roomID) {
+        app.setRoomId(roomID);
+        Intent data = new Intent(this, MainActivity.class);
         startActivity(data);
         finish();
     }
