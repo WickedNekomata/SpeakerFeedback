@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if (documentSnapshot.getBoolean("open") == false) {
+                if (!documentSnapshot.contains("open") || documentSnapshot.getBoolean("open") == false) {
                     stopFirestoreListenerService();
                     finish(); // TODO: Mostrar la pantalla de selecció d'una room en comptes de tancar l'aplicació directament
                 }

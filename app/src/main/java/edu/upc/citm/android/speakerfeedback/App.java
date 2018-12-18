@@ -3,12 +3,24 @@ package edu.upc.citm.android.speakerfeedback;
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class App extends Application {
+
+    static class Room
+    {
+        String name;
+        String id;
+
+        public Room(String name, String id) {
+            this.name = name;
+            this.id = id;
+        }
+    }
 
     public static final String CHANNEL_ID = "SpeakerFeedback";
 
@@ -18,9 +30,12 @@ public class App extends Application {
     private String roomId;
     private String userId;
 
+    public List<Room> recentRooms;
+
     @Override
     public void onCreate() {
         super.onCreate();
+        recentRooms = new ArrayList<>();
         readSharedPreferences();
         createNotificationChannels();
     }
@@ -65,5 +80,19 @@ public class App extends Application {
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
         }
+    }
+
+    public boolean addRoom(Room room)
+    {
+        for (Room currentRoom : recentRooms) {
+            if (currentRoom.id.equals(room.id))
+                return false;
+        }
+
+        if (recentRooms.size() == 5)
+            recentRooms.remove(4);
+
+        recentRooms.add(room);
+        return true;
     }
 }
