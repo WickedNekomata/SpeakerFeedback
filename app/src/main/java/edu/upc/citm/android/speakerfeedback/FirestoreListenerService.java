@@ -1,5 +1,6 @@
 package edu.upc.citm.android.speakerfeedback;
 
+import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -12,6 +13,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -24,15 +26,16 @@ import com.google.firebase.firestore.QuerySnapshot;
 public class FirestoreListenerService extends Service {
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-
+    App app;
     private boolean notify = false;
 
     @Override
     public void onCreate() {
+        app = (App)getApplication();
         super.onCreate();
         Log.i("SpeakerFeedback", "FirestoreListenerService.onCreate");
 
-        db.collection("rooms").document("testroom").collection("polls")
+        db.collection("rooms").document(app.getRoomId()).collection("polls")
                 .whereEqualTo("open", true)
                 .addSnapshotListener(pollsListener);
     }
@@ -40,6 +43,7 @@ public class FirestoreListenerService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopNotifications();
         Log.i("SpeakerFeedback", "FirestoreListenerService.onDestroy");
     }
 
@@ -53,12 +57,18 @@ public class FirestoreListenerService extends Service {
         return START_NOT_STICKY;
     }
 
+    private void stopNotifications()
+    {
+        NotificationManagerCompat manager = NotificationManagerCompat.from(this);
+        manager.cancelAll();
+    }
+
     private void createForegroundNotification() {
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, App.CHANNEL_ID)
-                .setContentTitle(String.format("Connectat a 'testroom'"))
+                .setContentTitle(String.format("Connectat a " + app.getRoomId()))
                 .setSmallIcon(R.drawable.ic_message)
                 .setContentIntent(pendingIntent)
                 .build();

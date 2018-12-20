@@ -5,20 +5,36 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.util.Log;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class App extends Application {
 
     static class Room
     {
-        String name;
-        String id;
+        private String name;
+        private String id;
 
         public Room(String name, String id) {
             this.name = name;
             this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getId() {
+            return id;
         }
     }
 
@@ -35,7 +51,10 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         recentRooms = new ArrayList<>();
+        readRoomsList();
+
         readSharedPreferences();
         createNotificationChannels();
     }
@@ -47,7 +66,45 @@ public class App extends Application {
         editor.putString(USERKEY, userId);
         editor.putString(ROOMKEY, roomId);
         editor.commit();
+
+        saveRoomsList();
+
         super.onTerminate();
+    }
+
+    private void saveRoomsList() {
+        try {
+            FileOutputStream outputStream = openFileOutput("recentRooms.txt", MODE_PRIVATE);
+            OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+
+            for (int i = 0; i < recentRooms.size(); i++) {
+                Room room = recentRooms.get(i);
+                writer.write(String.format("%s;%s\n", room.getName(), room.getId()));
+            }
+            writer.close();
+        }
+        catch (FileNotFoundException e) {
+            Log.e("SpeakerFeedback", "saveRoomsList: FileNotFoundException");
+        }
+        catch (IOException e) {
+            Log.e("SpeakerFeedback", "saveRoomsList: IOException");
+        }
+    }
+
+    private void readRoomsList() {
+        try {
+            FileInputStream inputStream = openFileInput("recentRooms.txt");
+            InputStreamReader reader = new InputStreamReader(inputStream);
+            Scanner scanner = new Scanner(reader);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split(";");
+                recentRooms.add(new Room(parts[0], parts[1]));
+            }
+        }
+        catch (FileNotFoundException e) {
+            Log.e("SpeakerFeedback", "readRoomsList: FileNotFoundException");
+        }
     }
 
     public void readSharedPreferences() {
@@ -93,6 +150,15 @@ public class App extends Application {
             recentRooms.remove(4);
 
         recentRooms.add(room);
+        return true;
+    }
+
+    public boolean deleteRoom(Room room)
+    {
+        if (!recentRooms.contains(room))
+            return false;
+
+        recentRooms.remove(room);
         return true;
     }
 }

@@ -123,7 +123,9 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!documentSnapshot.contains("open") || documentSnapshot.getBoolean("open") == false) {
                     stopFirestoreListenerService();
-                    finish(); // TODO: Mostrar la pantalla de selecció d'una room en comptes de tancar l'aplicació directament
+                    Intent data = new Intent(MainActivity.this, ChooseRoomActivity.class);
+                    startActivity(data);
+                    finish();
                 }
                 else {
                     String name = documentSnapshot.getString("name");
@@ -163,11 +165,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
-        db.collection("rooms").document("testroom")
+        db.collection("rooms").document(app.getRoomId())
                 .addSnapshotListener(this, roomListener);
-        db.collection("users").whereEqualTo("room", "testroom")
+        db.collection("users").whereEqualTo("room", app.getRoomId())
                 .addSnapshotListener(this, usersListener);
-        db.collection("rooms").document("testroom").collection("polls").orderBy("start", Query.Direction.DESCENDING)
+        db.collection("rooms").document(app.getRoomId()).collection("polls").orderBy("start", Query.Direction.DESCENDING)
                 .addSnapshotListener(this, pollsListener);
         super.onStart();
     }
@@ -216,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("SpeakerFeedback", "Error creant objecte", e);
                 Toast.makeText(MainActivity.this,
                         "No s'ha pogut registrar l'usuari, intenta-ho més tard", Toast.LENGTH_SHORT).show();
-                db.collection("users").document(userId).update("room", "testroom");
+                db.collection("users").document(userId).update("room", app.getRoomId());
                 finish();
             }
         });
@@ -251,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 String userId = app.getUserId();
                 Vote vote = new Vote(poll.getId(), poll.getOptionClicked());
-                db.collection("rooms").document("testroom").collection("votes").document(userId).set(vote);
+                db.collection("rooms").document(app.getRoomId()).collection("votes").document(userId).set(vote);
             }
         });
 
