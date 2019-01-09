@@ -64,17 +64,7 @@ public class MainActivity extends AppCompatActivity {
         app = (App)getApplication();
 
         getOrRegistrerUser();
-
-        if (app.getRoomId() != null)
-            enterRoom();
-        else {
-            Intent intent = new Intent(this, ChooseRoomActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
-
-        startFirestoreListenerService();
+        getOrEnterRoom();
 
         polls_view = findViewById(R.id.polls_view);
         adapter = new Adapter();
@@ -84,16 +74,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getOrRegistrerUser() {
-        // Busquem a les preferències de l'app l'ID de l'usuari per saber si ja s'havia registrat
         String userId = app.getUserId();
+
         if (app.getUserId() == null) {
-            // Hem de registrar l'usuari, demanem el nom
             Intent intent = new Intent(this, RegisterUserActivity.class);
             startActivityForResult(intent, REGISTER_USER);
             Toast.makeText(this, "Encara t'has de registrar", Toast.LENGTH_SHORT).show();
         }
         else {
             Log.i("SpeakerFeedback", "userId = " + userId);
+        }
+    }
+
+    private void getOrEnterRoom() {
+        if (app.getRoomId() != null) {
+            enterRoom();
+            startFirestoreListenerService();
+        }
+        else if (app.getUserId() != null) {
+            Intent intent = new Intent(this, ChooseRoomActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 
@@ -165,17 +166,28 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
-        db.collection("rooms").document(app.getRoomId())
-                .addSnapshotListener(this, roomListener);
-        db.collection("users").whereEqualTo("room", app.getRoomId())
-                .addSnapshotListener(this, usersListener);
-        db.collection("rooms").document(app.getRoomId()).collection("polls").orderBy("start", Query.Direction.DESCENDING)
-                .addSnapshotListener(this, pollsListener);
+        if (app.getRoomId() != null) {
+            db.collection("rooms").document(app.getRoomId())
+                    .addSnapshotListener(this, roomListener);
+            db.collection("users").whereEqualTo("room", app.getRoomId())
+                    .addSnapshotListener(this, usersListener);
+            db.collection("rooms").document(app.getRoomId()).collection("polls").orderBy("start", Query.Direction.DESCENDING)
+                    .addSnapshotListener(this, pollsListener);
+        }
+
         super.onStart();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        app.saveSharedPreferences();
+    }
+
     protected void onDestroy() {
-        db.collection("users").document(app.getUserId()).update("room", FieldValue.delete());
+        if (app.getUserId() != null) {
+            db.collection("users").document(app.getUserId()).update("room", FieldValue.delete());
+        }
         super.onDestroy();
     }
 
@@ -191,6 +203,10 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     String name = data.getStringExtra("name");
                     registerUser(name);
+
+                    Intent intent = new Intent(this, ChooseRoomActivity.class);
+                    startActivity(intent);
+                    finish();
                 } else {
                     Toast.makeText(this, "Has de registrar un nom", Toast.LENGTH_SHORT).show();
                     finish();
@@ -208,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(DocumentReference documentReference) {
                 app.setUserId(documentReference.getId());
-                enterRoom();
                 Log.i("SpeakerFeedback", "New user: userId = " + app.getUserId());
             }
         }).addOnFailureListener(new OnFailureListener() {

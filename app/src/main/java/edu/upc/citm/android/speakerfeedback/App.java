@@ -59,19 +59,6 @@ public class App extends Application {
         createNotificationChannels();
     }
 
-    @Override
-    public void onTerminate() {
-        SharedPreferences prefs = getSharedPreferences("config", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(USERKEY, userId);
-        editor.putString(ROOMKEY, roomId);
-        editor.commit();
-
-        saveRoomsList();
-
-        super.onTerminate();
-    }
-
     private void saveRoomsList() {
         try {
             FileOutputStream outputStream = openFileOutput("recentRooms.txt", MODE_PRIVATE);
@@ -105,6 +92,16 @@ public class App extends Application {
         catch (FileNotFoundException e) {
             Log.e("SpeakerFeedback", "readRoomsList: FileNotFoundException");
         }
+    }
+
+    public void saveSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences("config", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(USERKEY, userId);
+        editor.putString(ROOMKEY, roomId);
+        editor.commit();
+
+        saveRoomsList();
     }
 
     public void readSharedPreferences() {

@@ -33,7 +33,6 @@ public class ChooseRoomActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_room);
 
@@ -48,9 +47,16 @@ public class ChooseRoomActivity extends AppCompatActivity {
         rooms_view.setAdapter(adapter);
     }
 
-    public void onEnterRoom(View view) {
+    @Override
+    protected void onPause() {
+        super.onPause();
+        app.saveSharedPreferences();
+    }
 
+    public void onEnterRoom(View view) {
         final String roomID = edit_room.getText().toString();
+        if (roomID.isEmpty())
+            return;
 
         db.collection("rooms").document(roomID).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -88,7 +94,6 @@ public class ChooseRoomActivity extends AppCompatActivity {
     }
 
     private void enterPassword(final DocumentSnapshot documentSnapshot, final String roomID) {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         final String roomName = documentSnapshot.getString("name");
@@ -102,11 +107,12 @@ public class ChooseRoomActivity extends AppCompatActivity {
         builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (input.getText().toString().equals(documentSnapshot.getString("password")))
+                if (input.getText().toString().equals(documentSnapshot.getString("password"))) {
                     // Enter the room
                     enterRoom(roomName, roomID);
-                else
+                } else {
                     Toast.makeText(ChooseRoomActivity.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -126,7 +132,6 @@ public class ChooseRoomActivity extends AppCompatActivity {
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-
         private TextView room_name_view;
         private TextView room_id_view;
 
@@ -150,12 +155,13 @@ public class ChooseRoomActivity extends AppCompatActivity {
                                 else {
                                     AlertDialog.Builder builder = new AlertDialog.Builder(ChooseRoomActivity.this);
                                     String roomName = documentSnapshot.getString("name");
-                                    builder.setTitle(String.format("The room '%s' is closed. Do you want to delete it from Recent Rooms?", roomName));
+                                    builder.setTitle(String.format("The room '%s' is closed. Do you want to delete it?", roomName));
                                     builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            app.deleteRoom(room);
-                                            adapter.notify();
+                                            if (app.deleteRoom(room)) {
+                                                adapter.notifyDataSetChanged();
+                                            }
                                         }
                                     });
                                     builder.setNegativeButton("Close", null);
@@ -165,12 +171,13 @@ public class ChooseRoomActivity extends AppCompatActivity {
                             }
                             else {
                                 AlertDialog.Builder builder = new AlertDialog.Builder(ChooseRoomActivity.this);
-                                builder.setTitle(String.format("The room doesn't exist. Do you want to delete it from Recent Rooms?"));
+                                builder.setTitle(String.format("The room doesn't exist. Do you want to delete it?"));
                                 builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        app.deleteRoom(room);
-                                        adapter.notify();
+                                        if (app.deleteRoom(room)) {
+                                            adapter.notifyDataSetChanged();
+                                        }
                                     }
                                 });
                                 builder.setNegativeButton("Close", null);

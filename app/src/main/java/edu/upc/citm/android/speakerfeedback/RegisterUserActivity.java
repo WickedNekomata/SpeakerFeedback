@@ -20,6 +20,9 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     public void onSaveName(View view) {
         String name = edit_name.getText().toString();
+        if (name.isEmpty())
+            return;
+
         Intent data = new Intent();
         data.putExtra("name", name);
         setResult(RESULT_OK, data);

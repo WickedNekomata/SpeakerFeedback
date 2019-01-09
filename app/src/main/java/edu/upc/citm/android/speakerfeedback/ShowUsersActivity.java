@@ -29,6 +29,8 @@ public class ShowUsersActivity extends AppCompatActivity {
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    private App app;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,12 +42,17 @@ public class ShowUsersActivity extends AppCompatActivity {
         users_list_view = findViewById(R.id.users_list_view);
         users_list_view.setLayoutManager(new LinearLayoutManager(this));
         users_list_view.setAdapter(adapter);
+
+        app = (App)getApplication();
     }
 
     @Override
     protected void onStart() {
+        if (app.getRoomId() != null) {
+            db.collection("users").whereEqualTo("room", app.getRoomId()).addSnapshotListener(this, usersListener);
+        }
+
         super.onStart();
-        db.collection("users").whereEqualTo("room", "testroom").addSnapshotListener(this, usersListener);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
